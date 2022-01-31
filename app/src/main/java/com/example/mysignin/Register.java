@@ -1,5 +1,6 @@
 package com.example.mysignin;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -19,11 +20,18 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 
 
 public class Register extends AppCompatActivity {
+
+    public static final String TAG = "TAG";
+    FirebaseAuth firebaseAuth;
 
     GoogleSignInClient mGoogleSignInClient;
     public static int RC_SIGN_IN = 100;
@@ -32,6 +40,8 @@ public class Register extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        firebaseAuth = FirebaseAuth.getInstance();
 
 
 
@@ -57,6 +67,9 @@ public class Register extends AppCompatActivity {
         EditText pass = (EditText) findViewById(R.id.pass);
         EditText compass = (EditText) findViewById(R.id.compass);
         TextView btn = findViewById(R.id.login1);
+        TextView cc = (TextView) findViewById(R.id.CC);
+        TextView phonenum = (TextView) findViewById(R.id.phone);
+
 
         MaterialButton signup = (MaterialButton) findViewById(R.id.signup);
 
@@ -84,7 +97,22 @@ public class Register extends AppCompatActivity {
                                 Toast.makeText(Register.this, "SignUp SUCCESSFUL", Toast.LENGTH_SHORT).show();
                                 user1 = user.getText().toString();
                                 password = compass.getText().toString();
-                                startActivity(new Intent(Register.this, Login.class));
+                                firebaseAuth.createUserWithEmailAndPassword(email.getText().toString(), compass.getText().toString()).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                                    @Override
+                                    public void onSuccess(AuthResult authResult) {
+                                        Toast.makeText(Register.this, "User Account is Created", Toast.LENGTH_SHORT).show();
+                                        //send User to verify Phone number
+                                        Intent phone = new Intent(Register.this, VerifyOTP.class);
+                                        phone.putExtra("phone", "+"+cc.getText().toString()+phonenum.getText().toString());
+                                        startActivity(phone);
+                                        Log.d(TAG,"onSuccess"+cc.getText().toString()+phonenum.getText().toString());
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(Register.this, "Error!", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                             }
                         }
                         else {
